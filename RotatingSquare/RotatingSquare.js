@@ -1,8 +1,21 @@
 var gl;
 var shaderProgramSquare;
 
-var thetaUniform;
+//var thetaUniform;
+var MUniform;
+var M;
 var theta;
+
+var MsUniform;
+var s;
+var Ms;
+var sflip;
+
+var MtUniform;
+var Mt;
+var tx;
+var ty;
+
 var flag;
 var flip;
 
@@ -34,8 +47,24 @@ function init() {
     gl.useProgram( shaderProgramSquare );
 
     theta = .0;
-    thetaUniform = gl.getUniformLocation(shaderProgramSquare, "theta");
-    gl.uniform1f(thetaUniform, theta);
+    M = [Math.cos(theta), 
+        -Math.sin(theta), 
+        Math.sin(theta), 
+        Math.cos(theta)];
+    MUniform = gl.getUniformLocation(shaderProgramSquare, "M");
+    gl.uniformMatrix2fv(MUniform,false, M);
+
+    s = 1.0;
+    sflip = 1;
+    Ms = [s, 0, 0, 0, s, 0, 0, 0, 1.0];
+    MsUniform = gl.getUniformLocation(shaderProgramSquare, "Ms");
+    gl.uniformMatrix3fv(MUniform,false, Ms);
+
+    tx = .0;
+    ty = .0;
+    Mt = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, tx, ty, 1.0];
+    MtUniform = gl.getUniformLocation(shaderProgramSquare, "Mt");
+    gl.uniformMatrix3fv(MtUniform,false, Mt);
 
     mouseX = .0;
     mouseY = .0;
@@ -83,7 +112,12 @@ function drawSquare() {
     gl.clear( gl.COLOR_BUFFER_BIT );
 
     theta += .01 * flag;
-    gl.uniform1f(thetaUniform, theta);
+
+    M = [Math.cos(theta), 
+        -Math.sin(theta), 
+        Math.sin(theta), 
+        Math.cos(theta)];
+    gl.uniformMatrix2fv(MUniform,false, M);
 
     b = b + (0.01 * flip);
     if(b >= 1.0) {
@@ -92,6 +126,23 @@ function drawSquare() {
     if(b <= 0) {
         flip = -flip;
     }
+
+    s = s + (0.01 * sflip * flag);
+    if(s >= 3.0) {
+        sflip = -1;
+    }
+    if(s <= .5) {
+        sflip = 1;
+    }
+    Ms = [s, 0, 0, 0, s, 0, 0, 0, 1.0];
+    gl.uniformMatrix3fv(MsUniform,false, Ms);
+
+    tx += 0.001 * flag;
+    ty += 0.001 * flag;
+
+    Mt = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, tx, ty, 1.0];
+    gl.uniformMatrix3fv(MtUniform,false, Mt);
+
 
     gl.uniform4f(colorUniform, r, g, b, 1.0);
     gl.drawArrays( gl.TRIANGLE_FAN, 0, 4 );

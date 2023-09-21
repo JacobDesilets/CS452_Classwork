@@ -10,22 +10,39 @@
             
             <script type="x-shader/x-vertex" id="vertex-shader-square">
                 attribute vec4 myPosition;
-                uniform float theta;
+                //uniform float theta;
+                uniform mat2 M;
+                uniform mat3 Ms;
+                uniform mat3 Mt;
                 uniform vec2 mousePosition;
                 void main() {
                     float xi = myPosition.x;
                     float yi = myPosition.y;
 
-                    float xf;
-                    float yf;
+                    // mat2 M = mat2(cos(theta), -sin(theta), sin(theta), cos(theta)); 
+                    // Elements provided COLUMN wise
+                    // ex: 1, 2  => (1, 3, 2, 4)
+                    //     3, 4
 
-                    xf = xi * cos(theta) + yi * sin(theta) + mousePosition.x;
-                    yf = -xi * sin(theta) + yi * cos(theta) + mousePosition.y;
+                    //vec2 vi = vec2(xi, yi);
+                    //vec2 vf;
+
+                    //vf = Ms * M * vi;
+
+                    vec3 vi = vec3(xi, yi, 1.0);
+                    vec3 vf = Mt * (Ms * vi);
+
+                    // float xf = xi * cos(theta) + yi * sin(theta) + mousePosition.x;
+                    // float yf = -xi * sin(theta) + yi * cos(theta) + mousePosition.y;
+
+                    float xf = vf.x;
+                    float yf = vf.y;
+                    float wf = vf[2]; // vf.w
 
                     gl_Position.x = xf;
                     gl_Position.y = yf;
                     gl_Position.z = 0.0;
-                    gl_Position.w = 1.0;
+                    gl_Position.w = wf;
                     
                     gl_PointSize = 1.0;
                 }
