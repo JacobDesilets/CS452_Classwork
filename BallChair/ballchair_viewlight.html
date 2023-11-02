@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+    // INSERT CODE HERE
+    // Step 3.2: Lighting Calculations in Vertex Shader
+    precision mediump float;
+    attribute vec4 vertexPosition;
+    attribute vec3 vertexNormal;
+    // attribute vec4 vertexNormal;
+    
+    // Set up uniforms for modelview, modelview inverse transpose, and projections
+    uniform mat4 modelview;
+    uniform mat4 modelviewIT;
+    uniform mat4 projection;
+
+    
+    // Set up a uniform for a flag that decides if the projection is
+    // orthographic or perspective
+    
+    
+    // Set up uniforms for the ambient, diffuse, and specular coefficients
+    // of the object, and the shininess
+    uniform vec3 ka, kd, ks;
+    uniform float shininess;
+    
+    // Set up uniforms for the first light source (uniforms depend on light source type,
+    // at the very least, you need ambient, diffuse, and specular components,
+    // but you may also need other variables such as position for point light,
+    // direction for directional light, and/or position, direction of principal axis,
+    // and exponent for spotlight
+    uniform vec3 p0;
+    uniform vec3 Ia, Id, Is;
+    
+    // Set up uniforms for the second light source
+    
+    
+    // Set up uniforms for switching on / off each light source
+
+
+    // If you are doing Gouraud shading, you will require a varying variable
+    // for the final light intensity (and you can disregard the comment below)
+    // As a note: Gouraud shading is much easier, but Phong shading is
+    // more realistic
+    varying vec3 R;
+    
+    
+    // If you are doing Phong shading, you will need varying variables for
+    // the light components when they come to the vertex position (for point
+    // and spot light, the light gets attenuated),
+    // and varying variables to interpolate the vector against the incident direction (i), the
+    // view vector (view), and the normal vector (n)
+    // (If you are doing Phong, disregard the comment above)
+    
+    void main() {
+        gl_PointSize = 1.0;
+        
+        // Part 3.2: calculations in main function ---
+        
+        // Transform the vertex by the modelview matrix for future lighting calculations
+        
+        // Transform the normal by the inverse transpose of modelview matrix
+        // for future lighting calculations
+        
+        // For first light source, compute how much light comes to the vertex by using the
+        // appropriate equation for that light source. By the way, if you are using
+        // a point or spot light source, you will find that it is better to soften the
+        // denominator using the form ad^2 + bd + c
+        
+        vec4 vertexPositionTransformed = modelview * vertexPosition;
+        vec3 vertexPT3 = vertexPositionTransformed.xyz;
+
+        float distance = length(vertexPT3 - p0);
+        //float atten = (distance * distance);
+        float atten = 1.0;
+        vec3 Ia_pp0 = Ia / atten;
+        vec3 Id_pp0 = Id / atten;
+        vec3 Is_pp0 = Is / atten;
+        
+        // For the second light source, compute how much light comes to the vertex
+        // by using the appropriate equation for that light source
+        
+        vec3 Ra, Rd, Rs;
+        Ra.r = ka.r * Ia_pp0.r;        
+        Ra.g = ka.g * Ia_pp0.g;        
+        Ra.b = ka.b * Ia_pp0.b;
+        
+        vec4 vertexNormal4 = vec4(vertexNormal.x, vertexNormal.y, vertexNormal.z, 1.0);
+        vec4 vertexNormalTransformed4 = modelviewIT * vertexNormal4;
+        vec3 vertexNormalTransformed = normalize(vertexNormalTransformed4.xyz);
+        
+        // Compute the vector 'i' against the direction of incidence
+        // USING THE TRANSFORMED VERTEX POSITION (not the original vertex position!)
+        vec3 i = normalize(p0 - vertexPT3);
+
+        float costheta = dot(i, vertexNormalTransformed);
+        Rd.r = kd.r * Id_pp0.r * max(costheta, 0.0);
+        Rd.g = kd.g * Id_pp0.g * max(costheta, 0.0);
+        Rd.b = kd.b * Id_pp0.b * max(costheta, 0.0);
+        // Compute the vector 'view' for the direction of the viewer
+        vec3 view = normalize(vec3(0.0, 0.0, 0.0) - vertexPT3);
+        
+        // If you are doing Phong shading, disregard the lines between
+        // "Start of Gouraud shading" to "End of Gouraud shading" and move
+        // on to the fragment shader AFTER ENSURING THAT THE VARYING VARIABLES
+        // FOR the lighting components, i, view, AND n ARE CORRECTLY SET UP.
+        // You may find it handy to zero out lighting components
+        // corresponding to switched out lights before going to the
+        // fragment shader for Phong shading.
+        
+        
+        // *** Start of Gouraud shading ***
+        
+        // Compute the ambient reflection for the first light source
+        
+        
+        
+        // Compute the diffuse reflection for the first light source
+        // USING THE TRANSFORMED NORMAL
+        
+        
+        
+        // Compute the specular reflection for the first light source
+        // AGAIN USING THE TRANSFORMED NORMAL
+        
+        
+        
+        
+        // Compute the ambient reflection for the second light source
+        
+        
+        
+        // Compute the diffuse reflection for the second light source
+        // USING THE TRANSFORMED NORMAL
+        
+        
+        
+        // Compute the specular reflection for the second light source
+        // AGAIN USING THE TRANSFORMED NORMAL
+        
+        
+        
+        // Calculate the total reflected light by summing
+        // the ambient, diffuse, and specular reflections for
+        // all lights that are *on*. This reflected light
+        // should be assigned to the varying variable for the
+        // final light intensity
+        
+        R = Ra + Rd; // +Rs;
+        
+        // *** End of Gouraud shading ***
+        
+        
+        // EVEN IF YOU ARE NOT WORKING ON THE SECOND ITERATION,
+        // YOU MUST APPLY THE MODEL VIEW AND PROJECTION
+        // MATRICES TO vertexPosition TO GET gl_Position!
+        gl_Position = projection * modelview * vertexPosition; // change this line to apply the modelview and projection
+        
+    }
+
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+    precision mediump float;
+
+    // INSERT CODE HERE
+    // Step 3.3: Lighting Calculations in Fragment Shader
+    
+    // If you are doing Gouraud shading, you will require a varying variable
+    // for the final light intensity (and you can disregard the comment below)
+    varying vec3 R;
+    
+    
+    // If you are doing Phong shading, you will need varying variables for
+    // the light components when they come to the vertex position (for point
+    // and spot light, the light gets attenuated),
+    // and varying variables to interpolate the vector against the incident direction (i), the
+    // view vector (view), and the normal vector (n)
+    // (If you are doing Phong, disregard the comment above)
+    
+    void main() {
+        
+        // If you are doing Gouraud shading, you can disregard
+        // all the lines from "Start of Phong shading" to
+        // "End of Phong shading" and jump directly to the end
+        // of this function
+        
+        // *** Start of Phong shading ***
+        
+        // Normalize the varying variables that should be unit
+        // vectors (i, view, and n)
+        
+        
+        
+        // Compute the ambient reflection for the first light source
+        // using the interpolated lighting components
+        
+        
+        
+        // Compute the diffuse reflection for the first light source
+        // using the interpolated lighting components,
+        // and normalized i and n
+        
+        
+        
+        // Compute the specular reflection for the first light source
+        // using the interpolated lighting components,
+        // and normalized i, n, and v
+        
+        
+        
+        
+        // Compute the ambient reflection for the second light source
+        // using the interpolated lighting components
+        
+        
+        
+        // Compute the diffuse reflection for the second light source
+        // using the interpolated lighting components,
+        // and normalized i and n
+        
+        
+        
+        // Compute the specular reflection for the second light source
+        // using the interpolated lighting components,
+        // and normalized i, n, and v
+        
+        
+        
+        
+        // Calculate the total reflected light by summing
+        // the ambient, diffuse, and specular reflections for
+        // all lights that are on. With Phong shading,
+        // off lights should have their components
+        // zeroed out in the vertex shader. This reflected
+        // light represents the final light intensity
+        
+        
+        // *** End of Phong shading ***
+        
+        
+        // when you are done with lighting calculations,
+        // change the code below to assign the final light
+        // intensity to gl_FragColor
+        gl_FragColor = vec4( R.r, R.g, R.b, 1.0 );
+    }
+
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="ballchair_viewlight.js"></script>
+<script type="text/javascript" src="ballchair.js"></script>
+</head>
+
+<body onload = "initGL()">
+    <canvas id="gl-canvas" height="512" width="512">
+    </canvas>
+</body>
+</html>
